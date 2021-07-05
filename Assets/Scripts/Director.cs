@@ -9,42 +9,54 @@ using Random = UnityEngine.Random;
 
 public class Director : MonoBehaviour
 {
-    [SerializeField] private GameObject cube;
+    [SerializeField] private GameObject coloredCube;
     [SerializeField] private GameObject bullet;
     [SerializeField] private GameObject bomb;
+    [SerializeField] private GameObject levelCompleted;
     [SerializeField] private int row;
     [SerializeField] private int column;
+    [SerializeField] private int maxFPSonEditor;
     [SerializeField] private float range;
     [SerializeField] private float bombSpeed;
     [SerializeField] private float bulletSpeed;
     
+    private Rigidbody rigidbody;
+    private int maxHit;
+    public static int hitCount = 0;
+    private Boolean enabled = true;
+    
     private void Awake()
     {
+        levelCompleted.SetActive(false);
+        
+        #if UNITY_EDITOR
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = maxFPSonEditor;
+        #endif
+
+        maxHit = column * row;
+        
         CreateWall(row, column);
+        
+        rigidbody = coloredCube.GetComponent<Rigidbody>();
+        rigidbody.GetComponent<MeshRenderer>().sharedMaterial.color = Random.ColorHSV();
     }
     
     void Update()
     {
-        CreateProjectile();
-    }
-/*
-    void ChangeColor()
-    {
-        Vector3 explosionPosition = transform.position;
-        Collider[] colliders = Physics.OverlapSphere(explosionPosition, 5f);
-        
-        foreach (Collider hit in colliders)
+        if (enabled)
         {
-            
-            Renderer rer = hit.GetComponent<Renderer>();
-            rer.material.SetColor("_Color", Random.ColorHSV());
-            Rigidbody rb = hit.GetComponent<Rigidbody>();
-
-            
+            Shoot();
         }
-    }*/
 
-    private void CreateProjectile()
+        if (hitCount == maxHit)
+        {
+            enabled = false;
+            levelCompleted.SetActive(true);
+        }
+    }
+    
+    private void Shoot()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -55,8 +67,8 @@ public class Director : MonoBehaviour
                 string colliderTag = hit.collider.tag;
                 if (colliderTag == "Shootable")
                 {
-                    //rer.material.SetColor("_Color", Random.ColorHSV());
-                    GameObject bullet_ = Instantiate(bullet, Camera.main.transform.position, Quaternion.identity);
+                    rigidbody.GetComponent<MeshRenderer>().sharedMaterial.color = Random.ColorHSV();
+                    GameObject bullet_ = Instantiate(bullet, Camera.main.transform.position, Quaternion.AngleAxis(90, Vector3.left));
                     bullet_.GetComponent<Rigidbody>().AddForce(ray.direction * bulletSpeed);
                 }
             }
@@ -71,8 +83,7 @@ public class Director : MonoBehaviour
                 string colliderTag = hit.collider.tag;
                 if (colliderTag == "Shootable")
                 {
-                    //Renderer rer = cubes.GetComponent<Renderer>();
-                    //rer.material.SetColor("_Color", Random.ColorHSV());
+                    rigidbody.GetComponent<MeshRenderer>().sharedMaterial.color = Random.ColorHSV();
                     GameObject bomb_ = Instantiate(bomb, Camera.main.transform.position, Quaternion.identity);
                     bomb_.GetComponent<Rigidbody>().AddForce(ray.direction * bombSpeed);
                 }
@@ -87,7 +98,7 @@ public class Director : MonoBehaviour
         {
             for (int j = 0; j < column; j++)
             {
-                Instantiate(cube, new Vector3(i * range, j * range, 0), Quaternion.identity);
+                Instantiate(coloredCube, new Vector3(i * range * coloredCube.transform.localScale.x, j * range * coloredCube.transform.localScale.y, 0), Quaternion.identity);
             }
         }
     }

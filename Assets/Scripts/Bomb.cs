@@ -8,16 +8,22 @@ public class Bomb : Projectile
     [SerializeField] private float power = 5f;
     [SerializeField] private float upwardsModifier = 5f;
     
+    protected override void Awake()
+    {
+        base.Awake();
+        time = 1f;
+    }
+    
     protected override void ApplyForce()
     {
         Vector3 explosionPosition = transform.position;
         Collider[] colliders = Physics.OverlapSphere(explosionPosition, explosionRadius);
         foreach (Collider hit in colliders)
         {
-            Rigidbody rb = hit.GetComponent<Rigidbody>();
+            Rigidbody rigidbody = hit.GetComponent<Rigidbody>();
 
-            if (rb != null)
-                rb.AddExplosionForce(power, explosionPosition, explosionRadius, upwardsModifier);
+            if (rigidbody != null)
+                rigidbody.AddExplosionForce(power, explosionPosition, explosionRadius, upwardsModifier);
         }
     }
 }

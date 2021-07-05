@@ -5,12 +5,18 @@ using UnityEngine;
 
 public class ShootableObject : MonoBehaviour
 {
-    public Rigidbody rigidbody;
-    protected Renderer renderer;
+    private Boolean isHit = false;
     protected virtual void Awake()
     {
         gameObject.tag = "Shootable";
-        rigidbody = GetComponent<Rigidbody>();
-        renderer = GetComponent<Renderer>();
+    }
+
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.collider.CompareTag("Projectile") && !isHit)
+        {
+            Director.hitCount += 1;
+            isHit = true;
+        }
     }
 }
