@@ -123,3 +123,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d975a53791a036545b49b0e0e6f2db9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  coloredCube: {fileID: 1216968578626277528}

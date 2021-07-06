@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 
 public class Director : MonoBehaviour
 {
-    [SerializeField] private GameObject coloredCube;
+    [SerializeField] private GameObject shootableObject;
     [SerializeField] private GameObject bullet;
     [SerializeField] private GameObject bomb;
     [SerializeField] private GameObject levelCompleted;
@@ -19,11 +19,10 @@ public class Director : MonoBehaviour
     [SerializeField] private float range;
     [SerializeField] private float bombSpeed;
     [SerializeField] private float bulletSpeed;
-    
-    private Rigidbody rigidbody;
     private int maxHit;
     public static int hitCount = 0;
-    private Boolean enabled = true;
+    public static Boolean enabled = true;
+    public static Boolean shootClick = false;
     
     private void Awake()
     {
@@ -37,16 +36,22 @@ public class Director : MonoBehaviour
         maxHit = column * row;
         
         CreateWall(row, column);
-        
-        rigidbody = coloredCube.GetComponent<Rigidbody>();
-        rigidbody.GetComponent<MeshRenderer>().sharedMaterial.color = Random.ColorHSV();
     }
     
     void Update()
     {
         if (enabled)
         {
-            Shoot();
+            if (Input.GetMouseButtonDown(0))
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                Shoot(bullet, bulletSpeed, ray);
+            }
+            if (Input.GetMouseButtonDown(1))
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                Shoot(bomb, bombSpeed, ray);
+            }
         }
 
         if (hitCount == maxHit)
@@ -56,37 +61,16 @@ public class Director : MonoBehaviour
         }
     }
     
-    private void Shoot()
+    private void Shoot(GameObject projectile, float projectileSpeed, Ray ray)
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Physics.Raycast(ray, out RaycastHit hit2))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
+            string colliderTag = hit2.collider.tag;
+            if (colliderTag == "Shootable")
             {
-                string colliderTag = hit.collider.tag;
-                if (colliderTag == "Shootable")
-                {
-                    rigidbody.GetComponent<MeshRenderer>().sharedMaterial.color = Random.ColorHSV();
-                    GameObject bullet_ = Instantiate(bullet, Camera.main.transform.position, Quaternion.AngleAxis(90, Vector3.left));
-                    bullet_.GetComponent<Rigidbody>().AddForce(ray.direction * bulletSpeed);
-                }
-            }
-        }
-        
-        if (Input.GetMouseButtonDown(1))
-        {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
-                string colliderTag = hit.collider.tag;
-                if (colliderTag == "Shootable")
-                {
-                    rigidbody.GetComponent<MeshRenderer>().sharedMaterial.color = Random.ColorHSV();
-                    GameObject bomb_ = Instantiate(bomb, Camera.main.transform.position, Quaternion.identity);
-                    bomb_.GetComponent<Rigidbody>().AddForce(ray.direction * bombSpeed);
-                }
+                shootClick = true;
+                GameObject projectile_ = Instantiate(projectile, Camera.main.transform.position, Quaternion.identity);
+                projectile_.GetComponent<Rigidbody>().AddForce(ray.direction * projectileSpeed);
             }
         }
         
@@ -98,7 +82,7 @@ public class Director : MonoBehaviour
         {
             for (int j = 0; j < column; j++)
             {
-                Instantiate(coloredCube, new Vector3(i * range * coloredCube.transform.localScale.x, j * range * coloredCube.transform.localScale.y, 0), Quaternion.identity);
+                Instantiate(shootableObject, new Vector3(i * range * shootableObject.transform.localScale.x, j * range * shootableObject.transform.localScale.y, 0), Quaternion.identity);
             }
         }
     }
